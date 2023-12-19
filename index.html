@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      background: url(img/bg.jpg) center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+    }
+
+    #game-info, #game-container {
+      margin-bottom: 20px;
+    }
+
+    #game-board {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      border: 1px solid #fff;
+    }
+
+    .cell {
+      flex: 1 0 calc(5% - 1px);
+      height: 0;
+      padding-bottom: calc(5% - 1px);
+      background-color: #333;
+      box-sizing: border-box;
+    }
+
+    .snake {
+      background-color: #0f0;
+    }
+
+    .food {
+      background-color: #f00;
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      /* position: absolute; */
+      /* top: 10px; */
+      /* left: 10px; */
+      /* margin: 0; */
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <!-- MBT-webhouse logo -->
+  <!-- <h2>MBT-webhouse</h2> -->
+  <h2><i>MBT.webhouse</i></h2>
+
+  <div id="game-info">
+    <p>Score: <span id="score">0</span></p>
+    <p>High Score: <span id="high-score">0</span></p>
+    <label for="speed">Speed:</label>
+    <input type="number" id="speed" value="100" min="50" max="500" step="10">
+  </div>
+  <div id="game-container">
+    <div id="game-board"></div>
+  </div>
+
+  <footer>&copy; 2023 MBT-webhouse. All rights reserved.</footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const board = document.getElementById('game-board');
+      const scoreElement = document.getElementById('score');
+      const highScoreElement = document.getElementById('high-score');
+      const speedInput = document.getElementById('speed');
+      const gridSize = 20;
+      const snake = [{ x: 10, y: 10 }];
+      let direction = 'right';
+      let food = { x: 5, y: 5 };
+      let score = 0;
+      let highScore = 0;
+      let speed = parseInt(speedInput.value);
+
+      /**
+       * Creates the game board by adding cell elements to the board container.
+       */
+      function createBoard() {
+        Array.from({ length: gridSize * gridSize }, () => document.createElement('div'))
+          .forEach(cell => {
+            cell.classList.add('cell');
+            board.appendChild(cell);
+          });
+      }
+
+      /**
+       * Renders the snake on the game board.
+       */
+      function renderSnake() {
+        document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('snake'));
+
+        snake.forEach(({ x, y }) => {
+          const index = x + y * gridSize;
+          document.querySelectorAll('.cell')[index].classList.add('snake');
+        });
+      }
+
+      /**
+       * Renders the food on the game board.
+       */
+      function renderFood() {
+        const index = food.x + food.y * gridSize;
+        document.querySelectorAll('.cell')[index].classList.add('food');
+      }
+
+      /**
+       * Moves the snake based on the current direction.
+       */
+      function moveSnake() {
+        const head = { ...snake[0] };
+        const { x, y } = head;
+
+        switch (direction) {
+          case 'up': head.y = (y - 1 + gridSize) % gridSize; break;
+          case 'down': head.y = (y + 1) % gridSize; break;
+          case 'left': head.x = (x - 1 + gridSize) % gridSize; break;
+          case 'right': head.x = (x + 1) % gridSize; break;
+        }
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+          generateFood();
+          updateScore();
+        } else {
+          snake.pop();
+        }
+      }
+
+      /**
+       * Generates a new food location on the game board.
+       */
+      function generateFood() {
+        food.x = Math.floor(Math.random() * gridSize);
+        food.y = Math.floor(Math.random() * gridSize);
+      }
+
+      /**
+       * Updates the score and high score, and gradually decreases the speed.
+       */
+      function updateScore() {
+        score++;
+        scoreElement.innerText = score;
+
+        if (score > highScore) {
+          highScore = score;
+          highScoreElement.innerText = highScore;
+        }
+
+        if (speed > 50) {
+          speed -= 2;
+        }
+      }
+
+      /**
+       * Resets the game state.
+       */
+      function resetGame() {
+        snake.length = 1;
+        snake[0] = { x: 10, y: 10 };
+        direction = 'right';
+        generateFood();
+        score = 0;
+        scoreElement.innerText = score;
+        speed = parseInt(speedInput.value);
+      }
+
+      /**
+       * Listens for keyboard input to change the snake's direction.
+       */
+      document.addEventListener('keydown', ({ key }) => {
+        direction = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[key] || direction;
+      });
+
+      /**
+       * Listens for changes in the speed input and updates the speed variable.
+       */
+      speedInput.addEventListener('input', () => {
+        speed = parseInt(speedInput.value);
+      });
+
+      // Initialize the game
+      createBoard();
+      generateFood();
+
+      // Game loop
+      setInterval(() => {
+        moveSnake();
+        renderSnake();
+        renderFood();
+      }, speed);
+    });
+  </script>
+</body>
+</html>
